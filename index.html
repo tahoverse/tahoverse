@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>بایگانی جزوه</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper: #0B2545;
+    --paper-card: #123262;
+    --ink: #FFFFFF;
+    --ink-soft: #B7CCEA;
+    --line: rgba(255,255,255,0.18);
+    --indigo: #FFFFFF;
+    --gold: #7EB0EE;
+    --gold-soft: rgba(126,176,238,0.22);
+  }
+  *{ box-sizing: border-box; }
+  html{ scroll-behavior: smooth; }
+  body{
+    margin:0;
+    background: var(--paper);
+    background-image:
+      radial-gradient(circle at 1px 1px, rgba(255,255,255,0.08) 1px, transparent 0);
+    background-size: 22px 22px;
+    color: var(--ink);
+    font-family: 'Vazirmatn', sans-serif;
+    min-height: 100vh;
+    position: relative;
+    overflow-x: hidden;
+  }
+  .bg-decor{
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 0;
+  }
+  .bg-decor .item{
+    position: absolute;
+    color: var(--gold);
+    opacity: .16;
+  }
+  .bg-decor .item.dim{ opacity: .10; }
+  .bg-decor .formula{
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--gold);
+    opacity: .18;
+    direction: ltr;
+    letter-spacing: .02em;
+  }
+  .orbit-ring{ transform-origin: center; animation: spin 60s linear infinite; }
+  .orbit-ring.rev{ animation-direction: reverse; animation-duration: 90s; }
+  @keyframes spin{ from{ transform: rotate(0deg);} to{ transform: rotate(360deg);} }
+  @media (prefers-reduced-motion: reduce){
+    .orbit-ring{ animation: none; }
+  }
+  header, .divider, .search-wrap, .controls, .grid, .empty, footer{
+    position: relative;
+    z-index: 1;
+  }
+  .mono{ font-family: 'JetBrains Mono', monospace; direction: ltr; unicode-bidi: isolate; }
+
+  /* ===== Header ===== */
+  header{
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 64px 24px 32px;
+    text-align: center;
+  }
+  .kicker{
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    letter-spacing: .12em;
+    color: var(--gold);
+    text-transform: uppercase;
+    margin-bottom: 14px;
+    direction: ltr;
+  }
+  h1{
+    font-size: clamp(32px, 5vw, 48px);
+    font-weight: 800;
+    margin: 0 0 10px;
+    letter-spacing: -0.01em;
+  }
+  header p.sub{
+    color: var(--ink-soft);
+    font-size: 16px;
+    max-width: 480px;
+    margin: 0 auto;
+    line-height: 1.9;
+  }
+  .divider{
+    width: 100%;
+    max-width: 980px;
+    margin: 8px auto 0;
+    padding: 0 24px;
+  }
+  .divider svg{ width:100%; height:14px; display:block; }
+
+  /* ===== Controls ===== */
+  .controls{
+    max-width: 980px;
+    margin: 36px auto 8px;
+    padding: 0 24px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    justify-content: center;
+    }
+  .tag-btn{
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 8px 16px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: var(--paper-card);
+    color: var(--ink-soft);
+    cursor: pointer;
+    transition: all .18s ease;
+  }
+  .tag-btn:hover{ border-color: var(--gold); color: var(--ink); }
+  .tag-btn.active{
+    background: var(--gold);
+    border-color: var(--gold);
+    color: #0B2545;
+  }
+
+  .search-wrap{
+    max-width: 520px;
+    margin: 18px auto 0;
+    padding: 0 24px;
+  }
+  .search-wrap input{
+    width: 100%;
+    padding: 12px 18px;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+    background: var(--paper-card);
+    font-family: inherit;
+    font-size: 14px;
+    color: var(--ink);
+    outline: none;
+    transition: border-color .18s ease, box-shadow .18s ease;
+  }
+  .search-wrap input:focus{
+    border-color: var(--indigo);
+    box-shadow: 0 0 0 3px rgba(44,58,94,0.12);
+  }
+  .search-wrap input::placeholder{ color: #9B968A; }
+
+  /* ===== Grid ===== */
+  .grid{
+    max-width: 980px;
+    margin: 40px auto 100px;
+    padding: 0 24px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 20px;
+  }
+
+  .card{
+    position: relative;
+    background: var(--paper-card);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 22px 20px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    text-decoration: none;
+    color: inherit;
+    transition: transform .22s cubic-bezier(.2,.8,.2,1), box-shadow .22s ease, border-color .22s ease;
+    box-shadow: 0 1px 0 rgba(33,31,27,0.04);
+  }
+  .card::before{
+    content:"";
+    position:absolute;
+    top: 14px; bottom: 14px;
+    right: 8px;
+    width: 1px;
+    background: repeating-linear-gradient(to bottom, var(--line) 0 4px, transparent 4px 9px);
+  }
+  .card:hover{
+    transform: translateY(-3px);
+    border-color: var(--gold);
+    box-shadow: 0 12px 24px -12px rgba(33,31,27,0.28);
+  }
+  .card-top{
+    display:flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 10px;
+    padding-right: 14px;
+  }
+  .tag-pill{
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--gold);
+    background: var(--gold-soft);
+    border-radius: 999px;
+    padding: 3px 10px;
+    white-space: nowrap;
+  }
+  .stamp{
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    color: var(--ink-soft);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 3px 9px;
+    direction: ltr;
+  }
+  .card h3{
+    margin: 0;
+    padding-right: 14px;
+    font-size: 17px;
+    font-weight: 700;
+    line-height: 1.6;
+  }
+  .card p{
+    margin: 0;
+    padding-right: 14px;
+    font-size: 13.5px;
+    color: var(--ink-soft);
+    line-height: 1.8;
+    flex-grow: 1;
+  }
+  .card-foot{
+    padding-right: 14px;
+    display:flex;
+    align-items:center;
+    justify-content: space-between;
+    margin-top: 4px;
+  }
+  .open{
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--indigo);
+    display:flex;
+    align-items:center;
+    gap:6px;
+  }
+  .open svg{ width:14px; height:14px; transition: transform .18s ease; }
+  .card:hover .open svg{ transform: translateX(-3px); }
+  .size{
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-soft);
+    opacity: .7;
+    direction: ltr;
+  }
+
+  .empty{
+    max-width: 980px;
+    margin: 40px auto 100px;
+    padding: 40px 24px;
+    text-align: center;
+    color: var(--ink-soft);
+    font-size: 14px;
+    display: none;
+  }
+
+  footer{
+    text-align:center;
+    padding: 30px 24px 50px;
+    color: #9B968A;
+    font-size: 12.5px;
+    font-family: 'JetBrains Mono', monospace;
+    direction: ltr;
+    letter-spacing: .03em;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ transition: none !important; }
+  }
+
+  a:focus-visible, button:focus-visible, input:focus-visible{
+    outline: 2px solid var(--indigo);
+    outline-offset: 2px;
+  }
+</style>
+</head>
+<body>
+
+<div class="bg-decor" aria-hidden="true">
+
+  <!-- Planet with ring — physics -->
+  <svg class="item" style="top:6%; left:8%; width:120px; height:120px;" viewBox="0 0 120 120" fill="none">
+    <circle cx="60" cy="60" r="26" stroke="currentColor" stroke-width="1.6"/>
+    <g class="orbit-ring">
+      <ellipse cx="60" cy="60" rx="52" ry="14" stroke="currentColor" stroke-width="1.2"/>
+    </g>
+  </svg>
+
+  <!-- Small orbiting planet -->
+  <svg class="item dim" style="top:16%; left:82%; width:90px; height:90px;" viewBox="0 0 90 90" fill="none">
+    <circle cx="45" cy="45" r="14" stroke="currentColor" stroke-width="1.4"/>
+    <g class="orbit-ring rev">
+      <circle cx="45" cy="45" r="34" stroke="currentColor" stroke-width="1" stroke-dasharray="2 6"/>
+    </g>
+  </svg>
+
+  <!-- Cell — biology -->
+  <svg class="item" style="top:30%; left:4%; width:150px; height:150px;" viewBox="0 0 150 150" fill="none">
+    <path d="M75 12c34 0 63 29 63 63s-29 63-63 63S12 109 12 75c0-18 8-30 18-40 6 8 16 10 22 4-4-10 2-22 12-24 4 6 14 6 18 0 3-2 -2 9 -5 9z" stroke="currentColor" stroke-width="1.3"/>
+    <circle cx="80" cy="80" r="20" stroke="currentColor" stroke-width="1.3"/>
+    <circle cx="80" cy="80" r="4" fill="currentColor"/>
+    <ellipse cx="45" cy="55" rx="8" ry="4" stroke="currentColor" stroke-width="1"/>
+    <ellipse cx="105" cy="50" rx="7" ry="4" stroke="currentColor" stroke-width="1"/>
+  </svg>
+
+  <!-- Sine wave — math -->
+  <svg class="item dim" style="top:42%; left:60%; width:280px; height:70px;" viewBox="0 0 280 70" fill="none">
+    <path d="M0 35 C 20 5, 50 5, 70 35 C 90 65, 120 65, 140 35 C 160 5, 190 5, 210 35 C 230 65, 260 65, 280 35" stroke="currentColor" stroke-width="1.4"/>
+  </svg>
+
+  <!-- Coordinate axes with curve — math -->
+  <svg class="item" style="top:54%; left:10%; width:150px; height:130px;" viewBox="0 0 150 130" fill="none">
+    <line x1="10" y1="115" x2="140" y2="115" stroke="currentColor" stroke-width="1.2"/>
+    <line x1="20" y1="10" x2="20" y2="125" stroke="currentColor" stroke-width="1.2"/>
+    <path d="M20 100 Q 50 10, 90 60 T 135 30" stroke="currentColor" stroke-width="1.4"/>
+    <path d="M136 26 l6 4 l-4 6" stroke="currentColor" stroke-width="1.2"/>
+  </svg>
+
+  <!-- Coiled tube — biology (digestive tract line art) -->
+  <svg class="item dim" style="top:68%; left:78%; width:120px; height:120px;" viewBox="0 0 120 120" fill="none">
+    <path d="M15 20 q20 0 20 20 t20 20 q20 0 20 20 t20 20" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+  </svg>
+
+  <!-- Planet trio — physics -->
+  <svg class="item" style="top:80%; left:12%; width:100px; height:100px;" viewBox="0 0 100 100" fill="none">
+    <circle cx="50" cy="50" r="18" stroke="currentColor" stroke-width="1.4"/>
+    <g class="orbit-ring">
+      <circle cx="50" cy="50" r="40" stroke="currentColor" stroke-width="1" stroke-dasharray="1 5"/>
+    </g>
+  </svg>
+
+  <!-- Chemistry formulas -->
+  <div class="item formula" style="top:10%; left:45%;">H₂O</div>
+  <div class="item formula" style="top:22%; left:30%;">NaCl</div>
+  <div class="item formula" style="top:37%; left:14%;">C₆H₁₂O₆</div>
+  <div class="item formula" style="top:48%; left:85%;">CO₂</div>
+  <div class="item formula" style="top:62%; left:38%;">NH₃</div>
+  <div class="item formula" style="top:75%; left:60%;">CH₄</div>
+  <div class="item formula" style="top:88%; left:35%;">H₂SO₄</div>
+
+</div>
+
+<header>
+  <div class="kicker">personal archive</div>
+  <h1>بایگانی جزوه</h1>
+  <p class="sub">مجموعه‌ی جزوه‌های شخصی من — طبقه‌بندی‌شده، جست‌وجوپذیر، و برای همیشه در دسترس.</p>
+</header>
+
+<div class="divider">
+  <svg viewBox="0 0 980 14" preserveAspectRatio="none"><line x1="0" y1="7" x2="980" y2="7" stroke="#D8D3C4" stroke-width="1" stroke-dasharray="1 7" stroke-linecap="round"/></svg>
+</div>
+
+<div class="search-wrap">
+  <input id="searchInput" type="text" placeholder="جست‌وجو در عنوان جزوه‌ها…">
+</div>
+
+<div class="controls" id="tagControls"></div>
+
+<div class="grid" id="grid"></div>
+<div class="empty" id="emptyState">چیزی با این مشخصات پیدا نشد.</div>
+
+<footer>archived · updated automatically</footer>
+
+<script>
+  /* ==========================================================
+     برای افزودن جزوه‌های خودتان:
+     ۱) فایل PDF را کنار همین فایل index.html در همان پوشه بگذارید
+     ۲) یک آبجکت جدید داخل آرایه‌ی notes زیر اضافه کنید
+     path باید مسیر نسبی فایل PDF شما باشد (مثلاً "files/riazi1.pdf")
+     ========================================================== */
+  const notes = [
+    { title: "زیست‌شناسی دهم", tag: "زیست", date: "1403/07/01", desc: "جزوه‌ی کامل زیست‌شناسی پایه‌ی دهم.", path: "files/zist-10.pdf", size: "—" },
+    { title: "زیست‌شناسی یازدهم", tag: "زیست", date: "1403/07/01", desc: "جزوه‌ی کامل زیست‌شناسی پایه‌ی یازدهم.", path: "files/zist-11.pdf", size: "—" },
+    { title: "زیست‌شناسی دوازدهم", tag: "زیست", date: "1403/07/01", desc: "جزوه‌ی کامل زیست‌شناسی پایه‌ی دوازدهم.", path: "files/zist-12.pdf", size: "—" },
+
+    { title: "ریاضی دهم", tag: "ریاضی", date: "1403/07/01", desc: "جزوه‌ی کامل ریاضی پایه‌ی دهم.", path: "files/riazi-10.pdf", size: "—" },
+    { title: "ریاضی یازدهم", tag: "ریاضی", date: "1403/07/01", desc: "جزوه‌ی کامل ریاضی پایه‌ی یازدهم.", path: "files/riazi-11.pdf", size: "—" },
+    { title: "ریاضی دوازدهم", tag: "ریاضی", date: "1403/07/01", desc: "جزوه‌ی کامل ریاضی پایه‌ی دوازدهم.", path: "files/riazi-12.pdf", size: "—" },
+
+    { title: "شیمی دهم", tag: "شیمی", date: "1403/07/01", desc: "جزوه‌ی کامل شیمی پایه‌ی دهم.", path: "files/shimi-10.pdf", size: "—" },
+    { title: "شیمی یازدهم", tag: "شیمی", date: "1403/07/01", desc: "جزوه‌ی کامل شیمی پایه‌ی یازدهم.", path: "files/shimi-11.pdf", size: "—" },
+    { title: "شیمی دوازدهم", tag: "شیمی", date: "1403/07/01", desc: "جزوه‌ی کامل شیمی پایه‌ی دوازدهم.", path: "files/shimi-12.pdf", size: "—" },
+
+    { title: "فیزیک دهم", tag: "فیزیک", date: "1403/07/01", desc: "جزوه‌ی کامل فیزیک پایه‌ی دهم.", path: "files/fizik-10.pdf", size: "—" },
+    { title: "فیزیک یازدهم", tag: "فیزیک", date: "1403/07/01", desc: "جزوه‌ی کامل فیزیک پایه‌ی یازدهم.", path: "files/fizik-11.pdf", size: "—" },
+    { title: "فیزیک دوازدهم", tag: "فیزیک", date: "1403/07/01", desc: "جزوه‌ی کامل فیزیک پایه‌ی دوازدهم.", path: "files/fizik-12.pdf", size: "—" },
+  ];
+
+  const grid = document.getElementById('grid');
+  const emptyState = document.getElementById('emptyState');
+  const tagControls = document.getElementById('tagControls');
+  const searchInput = document.getElementById('searchInput');
+
+  const tags = ["همه", ...Array.from(new Set(notes.map(n => n.tag)))];
+  let activeTag = "همه";
+  let query = "";
+
+  function iconArrow(){
+    return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l7 7-7 7M22 12H3"/></svg>`;
+  }
+
+  function render(){
+    const filtered = notes.filter(n => {
+      const matchesTag = activeTag === "همه" || n.tag === activeTag;
+      const matchesQuery = n.title.toLowerCase().includes(query.toLowerCase()) || n.desc.toLowerCase().includes(query.toLowerCase());
+      return matchesTag && matchesQuery;
+    });
+
+    grid.innerHTML = filtered.map(n => `
+      <a class="card" href="${n.path}" target="_blank" rel="noopener">
+        <div class="card-top">
+          <span class="tag-pill">${n.tag}</span>
+          <span class="stamp">${n.date}</span>
+          </div>
+        <h3>${n.title}</h3>
+        <p>${n.desc}</p>
+        <div class="card-foot">
+          <span class="open">مشاهده PDF ${iconArrow()}</span>
+          <span class="size">${n.size}</span>
+        </div>
+      </a>
+    `).join('');
+
+    emptyState.style.display = filtered.length === 0 ? 'block' : 'none';
+  }
+
+  function renderTags(){
+    tagControls.innerHTML = tags.map(t => `<button class="tag-btn ${t===activeTag ? 'active':''}" data-tag="${t}">${t}</button>`).join('');
+    tagControls.querySelectorAll('.tag-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        activeTag = btn.dataset.tag;
+        renderTags();
+        render();
+      });
+    });
+  }
+
+  searchInput.addEventListener('input', (e) => {
+    query = e.target.value;
+    render();
+  });
+
+  renderTags();
+  render();
+</script>
+
+</body>
+</html>
